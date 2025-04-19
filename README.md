@@ -20,7 +20,7 @@ MindMap is a simple React application for logging and tracking your emotions ove
 1. Clone the repository or download the source code:
 
    ```bash
-   git clone https://github.com/yourusername/mindmap.git
+   git clone https://github.com/avatar25/mindmap.git
    cd mindmap
    ```
 
