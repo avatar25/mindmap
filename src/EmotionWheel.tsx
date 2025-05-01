@@ -17,9 +17,11 @@ const sectors = [
 ];
 
 const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion, selectedEmotion }) => {
-  const radius = 200;
-  const cx = 225;
-  const cy = 225;
+  // Make the wheel responsive
+  const size = 600; // Increased size
+  const radius = 270; // Increased radius
+  const cx = size / 2;
+  const cy = size / 2;
   const ringCount = 3;
   const ringWidth = radius / ringCount;
   const anglePerSector = (2 * Math.PI) / sectors.length;
@@ -65,8 +67,11 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion, selectedEmotion
         const { x, y } = polarToCartesian(midA, labelR);
 
         const opacity = 0.4 + (j / (ringCount - 1)) * 0.6;
-        const fontSize = 8 + j * 2; // 8px -> 10px -> 12px
-        const textOpacity = 0.4 + (j / 2) * 0.6; // same as slice fade
+        // Make font size proportional to the ring's radius
+        const minFont = 10;
+        const maxFont = 32;
+        const fontSize = minFont + ((outerR - ringWidth / 2) / radius) * (maxFont - minFont);
+        const textOpacity = 0.4 + (j / 2) * 0.6;
 
         return (
           <g key={`${sector.label}-${stage}`}
@@ -96,7 +101,12 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion, selectedEmotion
     });
 
   return (
-    <svg width={450} height={450} viewBox="0 0 450 450">
+    <svg
+      width="100%"
+      height="100%"
+      viewBox={`0 0 ${size} ${size}`}
+      style={{ maxWidth: size, maxHeight: size, display: "block", margin: "0 auto" }}
+    >
       {renderWheel()}
     </svg>
   );
