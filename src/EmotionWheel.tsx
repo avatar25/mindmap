@@ -1,5 +1,3 @@
-
-
 import React from "react";
 
 type EmotionWheelProps = {
@@ -8,78 +6,28 @@ type EmotionWheelProps = {
 };
 
 const sectors = [
-  {
-    label: "Anger",
-    color: "#f94144",
-    sub: ["Mad", "Frustrated", "Aggressive"]
-  },
-  {
-    label: "Fear",
-    color: "#43aa8b",
-    sub: ["Anxious", "Insecure", "Scared"]
-  },
-  {
-    label: "Sad",
-    color: "#577590",
-    sub: ["Lonely", "Depressed", "Guilty"]
-  },
-  {
-    label: "Happy",
-    color: "#f9c74f",
-    sub: ["Joyful", "Proud", "Playful"]
-  },
-  {
-    label: "Surprise",
-    color: "#90be6d",
-    sub: ["Startled", "Confused", "Amazed"]
-  },
-  {
-    label: "Disgust",
-    color: "#4d908e",
-    sub: ["Disapproval", "Awful", "Embarrassed"]
-  }
+  { label: "Anger", color: "#f94144", stages: ["Annoyance", "Anger", "Rage"] },
+  { label: "Anticipation", color: "#f3722c", stages: ["Interest", "Anticipation", "Vigilance"] },
+  { label: "Joy", color: "#f9c74f", stages: ["Serenity", "Joy", "Ecstasy"] },
+  { label: "Trust", color: "#90be6d", stages: ["Acceptance", "Trust", "Admiration"] },
+  { label: "Fear", color: "#43aa8b", stages: ["Apprehension", "Fear", "Terror"] },
+  { label: "Surprise", color: "#577590", stages: ["Distraction", "Surprise", "Amazement"] },
+  { label: "Sadness", color: "#4d908e", stages: ["Pensiveness", "Sadness", "Grief"] },
+  { label: "Disgust", color: "#277da1", stages: ["Boredom", "Disgust", "Loathing"] },
 ];
 
 const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion, selectedEmotion }) => {
-  const radius = 130;
-  const cx = 150;
-  const cy = 150;
+  const radius = 200;
+  const cx = 225;
+  const cy = 225;
+  const ringCount = 3;
+  const ringWidth = radius / ringCount;
   const anglePerSector = (2 * Math.PI) / sectors.length;
 
-  const polarToCartesian = (angle: number, r: number) => {
-    return {
-      x: cx + r * Math.cos(angle),
-      y: cy + r * Math.sin(angle)
-    };
-  };
-
-  const renderWheel = () => {
-    return sectors.map((sector, i) => {
-      const startAngle = i * anglePerSector;
-      const midAngle = startAngle + anglePerSector / 2;
-      const { x, y } = polarToCartesian(midAngle, radius);
-
-      return (
-        <g key={sector.label} onClick={() => setEmotion(sector.label)} style={{ cursor: "pointer" }}>
-          <path
-            d={describeArc(cx, cy, 0, radius, startAngle, startAngle + anglePerSector)}
-            fill={selectedEmotion === sector.label ? "#000" : sector.color}
-            stroke="#fff"
-          />
-          <text
-            x={x}
-            y={y}
-            fill={selectedEmotion === sector.label ? "#fff" : "#000"}
-            textAnchor="middle"
-            alignmentBaseline="middle"
-            fontSize="10"
-          >
-            {sector.label}
-          </text>
-        </g>
-      );
-    });
-  };
+  const polarToCartesian = (angle: number, r: number) => ({
+    x: cx + r * Math.cos(angle),
+    y: cy + r * Math.sin(angle),
+  });
 
   const describeArc = (
     x: number,
@@ -90,7 +38,6 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion, selectedEmotion
     endAngle: number
   ) => {
     const largeArc = endAngle - startAngle > Math.PI ? 1 : 0;
-
     const startOuter = polarToCartesian(startAngle, outerRadius);
     const endOuter = polarToCartesian(endAngle, outerRadius);
     const startInner = polarToCartesian(endAngle, innerRadius);
@@ -105,8 +52,51 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion, selectedEmotion
     ].join(" ");
   };
 
+  const renderWheel = () =>
+    sectors.flatMap((sector, i) => {
+      const startA = i * anglePerSector;
+      const endA = startA + anglePerSector;
+
+      return sector.stages.map((stage, j) => {
+        const innerR = ringWidth * j;
+        const outerR = ringWidth * (j + 1);
+        const labelR = innerR + ringWidth * 0.7;  // push labels outward from center
+        const midA = startA + anglePerSector / 2;
+        const { x, y } = polarToCartesian(midA, labelR);
+
+        const opacity = 0.4 + (j / (ringCount - 1)) * 0.6;
+        const fontSize = 8 + j * 2; // 8px -> 10px -> 12px
+        const textOpacity = 0.4 + (j / 2) * 0.6; // same as slice fade
+
+        return (
+          <g key={`${sector.label}-${stage}`}
+             onClick={() => setEmotion(stage)}
+             style={{ cursor: "pointer" }}>
+            <path
+              d={describeArc(cx, cy, innerR, outerR, startA, endA)}
+              fill={sector.color}
+              fillOpacity={opacity}
+              stroke="#fff"
+            />
+            <text
+              x={x}
+              y={y}
+              textAnchor="middle"
+              alignmentBaseline="middle"
+              fontSize={fontSize}
+              fill={selectedEmotion === stage ? "#fff" : "#000"}
+              fillOpacity={textOpacity}
+              style={{ pointerEvents: "none" }}
+            >
+              {stage}
+            </text>
+          </g>
+        );
+      });
+    });
+
   return (
-    <svg width={300} height={300} viewBox="0 0 300 300">
+    <svg width={450} height={450} viewBox="0 0 450 450">
       {renderWheel()}
     </svg>
   );

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import EmotionWheel from "./EmotionWheel";
 
 type EmotionLog = {
   emotion: string;
@@ -71,20 +72,14 @@ const App: React.FC = () => {
     }}>
       <h1 style={{textAlign: "center", marginBottom: "1.5rem"}}>MindMap</h1>
       <form onSubmit={handleSubmit} style={{marginBottom: "2rem"}}>
-        <input
-          type="text"
-          value={emotion}
-          onChange={e => setEmotion(e.target.value)}
-          placeholder="What emotion are you feeling?"
-          style={{
-            width: "100%",
-            padding: "0.75rem",
-            fontSize: "1rem",
-            borderRadius: 8,
-            border: "1px solid #ccc",
-            marginBottom: "1rem"
-          }}
-        />
+        {/* Replace text input with EmotionWheel */}
+        <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "center" }}>
+          <EmotionWheel setEmotion={setEmotion} selectedEmotion={emotion} />
+        </div>
+        {/* Show selected emotion */}
+        <div style={{ marginBottom: "1rem", fontWeight: 500, fontSize: "1.1rem", color: "#4f8cff" }}>
+          {emotion ? `Selected: ${emotion}` : "Select an emotion"}
+        </div>
         <div
           style={{
             display: "flex",
@@ -97,14 +92,14 @@ const App: React.FC = () => {
             htmlFor="intensity"
             style={{ marginRight: 10, fontSize: "0.98rem" }}
           >
-            Intensity: <strong>{intensity}/1</strong>
+            Intensity: <strong>{intensity}/10</strong>
           </label>
           <input
             id="intensity"
             type="range"
             min={1}
-            max={100}
-            step={5}
+            max={10}
+            step={1}
             value={intensity}
             onChange={e => setIntensity(Number(e.target.value))}
             style={{ flex: 1, maxWidth: 300 }}
