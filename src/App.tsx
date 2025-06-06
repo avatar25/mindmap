@@ -37,7 +37,12 @@ const App: React.FC = () => {
   useEffect(() => {
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (stored) {
-      setLogs(JSON.parse(stored));
+      try {
+        setLogs(JSON.parse(stored));
+      } catch {
+        console.error("Failed to parse emotion logs from localStorage.");
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+      }
     }
   }, []);
 
