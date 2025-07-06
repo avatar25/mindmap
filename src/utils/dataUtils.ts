@@ -3,6 +3,8 @@ import { format, parseISO } from 'date-fns';
 export type EmotionLog = {
   emotion: string;
   intensity: number;
+  context?: string;
+  journal?: string;
   timestamp: string;
 };
 
@@ -69,7 +71,7 @@ export function exportAsJSON(data: EmotionLog[]): void {
 
 // Export data as CSV
 export function exportAsCSV(data: EmotionLog[]): void {
-  const headers = ['Emotion', 'Intensity', 'Date', 'Time', 'Timestamp'];
+  const headers = ['Emotion', 'Intensity', 'Context', 'Journal', 'Date', 'Time', 'Timestamp'];
   const csvContent = [
     headers.join(','),
     ...data.map(log => {
@@ -77,6 +79,8 @@ export function exportAsCSV(data: EmotionLog[]): void {
       return [
         `"${log.emotion}"`,
         log.intensity,
+        `"${log.context || ''}"`,
+        `"${log.journal || ''}"`,
         format(date, 'yyyy-MM-dd'),
         format(date, 'HH:mm:ss'),
         log.timestamp
@@ -102,6 +106,8 @@ export function importFromCSV(csvText: string): EmotionLog[] {
   
   const emotionIndex = headers.findIndex(h => h.toLowerCase().includes('emotion'));
   const intensityIndex = headers.findIndex(h => h.toLowerCase().includes('intensity'));
+  const contextIndex = headers.findIndex(h => h.toLowerCase().includes('context'));
+  const journalIndex = headers.findIndex(h => h.toLowerCase().includes('journal'));
   const dateIndex = headers.findIndex(h => h.toLowerCase().includes('date'));
   const timeIndex = headers.findIndex(h => h.toLowerCase().includes('time'));
   const timestampIndex = headers.findIndex(h => h.toLowerCase().includes('timestamp'));
@@ -123,6 +129,8 @@ export function importFromCSV(csvText: string): EmotionLog[] {
     return {
       emotion: values[emotionIndex] || 'Unknown',
       intensity: parseInt(values[intensityIndex]) || 5,
+      context: contextIndex !== -1 ? values[contextIndex] || undefined : undefined,
+      journal: journalIndex !== -1 ? values[journalIndex] || undefined : undefined,
       timestamp
     };
   }).filter(log => log.emotion !== 'Unknown');
