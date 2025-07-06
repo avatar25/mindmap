@@ -3,6 +3,7 @@
   --card-bg: #fff;
   --text-color: #000;
   --primary-color: #4f8cff;
+  --border-color: #e1e5e9;
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
@@ -19,6 +20,7 @@ body.dark {
   --card-bg: #2b2b2b;
   --text-color: #f5f5f5;
   --primary-color: #6ea8fe;
+  --border-color: #404040;
 }
 
 .container {
@@ -83,4 +85,31 @@ body.dark {
   cursor: pointer;
   color: var(--text-color);
   box-shadow: 0 2px 5px #0002;
+}
+
+/* Additional CSS for new components */
+.container {
+  max-width: 800px;
+}
+
+/* Chart container styles */
+.recharts-wrapper {
+  background: var(--card-bg);
+}
+
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: var(--border-color);
+}
+
+.recharts-text {
+  fill: var(--text-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    max-width: 95%;
+    padding: 1rem;
+  }
 }
