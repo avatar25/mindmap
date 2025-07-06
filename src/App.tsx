@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import EmotionWheel from "./EmotionWheel";
+import DarkModeToggle from "./DarkModeToggle";
 
 type EmotionLog = {
   emotion: string;
@@ -33,18 +34,35 @@ const App: React.FC = () => {
   const [intensity, setIntensity] = useState(5);
   const [logs, setLogs] = useState<EmotionLog[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [dark, setDark] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Load logs from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (stored) {
-      setLogs(JSON.parse(stored));
+    try {
+      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (stored) {
+        setLogs(JSON.parse(stored));
+      }
+      const theme = localStorage.getItem("darkMode");
+      setDark(theme === "true");
+      setShowOnboarding(!localStorage.getItem("onboardingSeen"));
+    } catch (err) {
+      setError(true);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   // Save logs to localStorage whenever logs change
   useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(logs));
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(logs));
+    } catch {
+      setError(true);
+    }
   }, [logs]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -58,6 +76,18 @@ const App: React.FC = () => {
     setLogs([newLog, ...logs]);
     setEmotion("");
     setIntensity(5);
+  };
+
+  const toggleDark = () => {
+    const next = !dark;
+    setDark(next);
+    localStorage.setItem("darkMode", String(next));
+    document.body.classList.toggle("dark", next);
+  };
+
+  const dismissOnboarding = () => {
+    setShowOnboarding(false);
+    localStorage.setItem("onboardingSeen", "true");
   };
 
   const handleDelete = (timestamp: string) => {
@@ -83,18 +113,29 @@ const App: React.FC = () => {
     log.emotion.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  useEffect(() => {
+    document.body.classList.toggle("dark", dark);
+  }, [dark]);
+
+  if (loading) {
+    return <div style={{ textAlign: "center", marginTop: "2rem" }}>Loading...</div>;
+  }
+
+  if (error) {
+    return <div style={{ textAlign: "center", marginTop: "2rem" }}>An error occurred while accessing local storage.</div>;
+  }
+
   return (
     <>
-      <div
-        style={{
-          width: "100vw",
-          textAlign: "center",
-          marginTop: "2rem",
-          marginBottom: "1.5rem",
-        }}
-      >
-
-      </div>
+      {showOnboarding && (
+        <div className="onboarding-overlay" role="dialog" aria-modal="true">
+          <div className="onboarding-content">
+            <p>Welcome to MindMap! Select an emotion and log how you feel.</p>
+            <button onClick={dismissOnboarding}>Got it</button>
+          </div>
+        </div>
+      )}
+      <DarkModeToggle toggle={toggleDark} dark={dark} />
       <div
         style={{
           minHeight: "100vh",
@@ -103,25 +144,9 @@ const App: React.FC = () => {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "#f3f6fa",
         }}
       >
-        <div
-          style={{
-            width: "100%",
-            maxWidth: 600,
-            margin: "2rem auto",
-            padding: "3.0rem",
-            borderRadius: 60,
-            background: "#fff",
-            boxShadow: "0 2px 12px #0001",
-            fontFamily: "system-ui, sans-serif",
-            textAlign: "center",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
+        <div className="container">
           <h1 style={{ textAlign: "center", marginBottom: "1.5rem", color: "#DB87D4", fontSize: "3rem", fontWeight: 700, letterSpacing: 4 }}>MindMap</h1>
           <form onSubmit={handleSubmit} onKeyPress={handleKeyPress} style={{ marginBottom: "2rem", width: "100%" }}>
             
@@ -166,6 +191,7 @@ const App: React.FC = () => {
                 value={intensity}
                 onChange={e => setIntensity(Number(e.target.value))}
                 style={{ flex: 1, maxWidth: 300 }}
+                aria-label="Intensity"
               />
             </div>
             <button
@@ -176,13 +202,14 @@ const App: React.FC = () => {
                 padding: "0.75rem",
                 borderRadius: 8,
                 border: "none",
-                background: "#4f8cff",
+                background: "var(--primary-color)",
                 color: "#fff",
                 fontWeight: 300,
                 fontSize: "1rem",
                 cursor: "pointer",
                 opacity: emotion.trim() ? 1 : 0.6
               }}
+              aria-label="Log emotion"
             >
               Log Emotion
             </button>
@@ -231,6 +258,7 @@ const App: React.FC = () => {
                     e.currentTarget.style.color = "#ff6b6b";
                   }}
                   title="Delete all emotion logs"
+                  aria-label="Clear all emotion logs"
                 >
                   Clear All
                 </button>
@@ -243,6 +271,7 @@ const App: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Search emotions..."
+                  aria-label="Search emotions"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   style={{
@@ -283,8 +312,9 @@ const App: React.FC = () => {
                   {filteredLogs.map((log, idx) => (
                     <li
                       key={log.timestamp + idx}
+                      className="log-item"
                       style={{
-                        background: "#f6f8fa",
+                        background: "var(--card-bg)",
                         borderRadius: 8,
                         padding: "0.75rem 1rem",
                         marginBottom: "0.75rem",
@@ -300,10 +330,10 @@ const App: React.FC = () => {
                         alignItems: "flex-start"
                       }}>
                         <div style={{ flex: 1 }}>
-                          <span style={{fontSize: "1.05rem", fontWeight: 500, color: "#000"}}>
+                          <span style={{fontSize: "1.05rem", fontWeight: 500, color: "var(--text-color)"}}>
                             {log.emotion}
                           </span>
-                          <span style={{fontSize: "0.95rem", color: "#4f8cff", display: "block", marginTop: "0.25rem"}}>
+                          <span style={{fontSize: "0.95rem", color: "var(--primary-color)", display: "block", marginTop: "0.25rem"}}>
                             Intensity: {log.intensity}/10
                           </span>
                           <span style={{fontSize: "0.85rem", color: "#888", display: "block", marginTop: "0.25rem"}}>
@@ -326,6 +356,7 @@ const App: React.FC = () => {
                           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#ffe6e6"}
                           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
                           title="Delete this emotion log"
+                          aria-label="Delete this emotion log"
                         >
                           ×
                         </button>

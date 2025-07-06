@@ -32,8 +32,6 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion, selectedEmotion
   });
 
   const describeArc = (
-    x: number,
-    y: number,
     innerRadius: number,
     outerRadius: number,
     startAngle: number,
@@ -78,7 +76,7 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion, selectedEmotion
              onClick={() => setEmotion(stage)}
              style={{ cursor: "pointer" }}>
             <path
-              d={describeArc(cx, cy, innerR, outerR, startA, endA)}
+              d={describeArc(innerR, outerR, startA, endA)}
               fill={sector.color}
               fillOpacity={opacity}
               stroke="#fff"
