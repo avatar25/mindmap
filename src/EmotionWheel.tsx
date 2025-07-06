@@ -59,7 +59,9 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion, selectedEmotion
   const outerLayerMax = 280;
 
   const getEmotionAtPosition = (angle: number, layer: number) => {
-    const sectorIndex = Math.floor(((angle + 22.5) % 360) / 45);
+    // Normalize angle to 0-360 range before calculating the sector.
+    const normalized = (angle + 360 + 22.5) % 360;
+    const sectorIndex = Math.floor(normalized / 45);
     return emotionLayers[layer].emotions[sectorIndex];
   };
 
