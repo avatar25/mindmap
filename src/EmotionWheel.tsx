@@ -2,7 +2,6 @@ import React from "react";
 
 type EmotionWheelProps = {
   setEmotion: (value: string) => void;
-  selectedEmotion: string;
 };
 
 // Map emotions to the 8 petals of the lotus
@@ -75,7 +74,7 @@ function getOutlineColor(hex: string): string {
   return `rgb(${r},${g},${b})`;
 }
 
-const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion, selectedEmotion }) => {
+const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion }) => {
   const size = 600;
   const middleRadius = 100;
   const middleLayerMax = 180;
