@@ -194,7 +194,7 @@ const App: React.FC = () => {
                 marginRight: "auto",
               }}
             >
-              <EmotionWheel setEmotion={setEmotion} selectedEmotion={emotion} />
+              <EmotionWheel setEmotion={setEmotion} />
             </div>
             {/* Show selected emotion */}
             <div style={{ marginBottom: "1rem", fontWeight: 500, fontSize: "1.1rem", color: "#4f8cff" }}>
