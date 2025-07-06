@@ -31,6 +31,17 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion, selectedEmotion
     y: cy + r * Math.sin(angle),
   });
 
+  const describeTextArc = (
+    r: number,
+    startAngle: number,
+    endAngle: number
+  ) => {
+    const start = polarToCartesian(startAngle, r);
+    const end = polarToCartesian(endAngle, r);
+    const largeArc = endAngle - startAngle > Math.PI ? 1 : 0;
+    return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 1 ${end.x} ${end.y}`;
+  };
+
   const describeArc = (
     x: number,
     y: number,
@@ -62,9 +73,13 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion, selectedEmotion
       return sector.stages.map((stage, j) => {
         const innerR = ringWidth * j;
         const outerR = ringWidth * (j + 1);
-        const labelR = innerR + ringWidth * 0.7;  // push labels outward from center
+        const labelR = innerR + ringWidth * 0.7; // push labels outward from center
         const midA = startA + anglePerSector / 2;
-        const { x, y } = polarToCartesian(midA, labelR);
+        const reversed = midA > Math.PI / 2 && midA < (3 * Math.PI) / 2;
+        const textPathId = `tp-${i}-${j}`;
+        const textArc = reversed
+          ? describeTextArc(labelR, endA - 0.02, startA + 0.02)
+          : describeTextArc(labelR, startA + 0.02, endA - 0.02);
 
         const opacity = 0.4 + (j / (ringCount - 1)) * 0.6;
         // Make font size proportional to the ring's radius
@@ -83,17 +98,16 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion, selectedEmotion
               fillOpacity={opacity}
               stroke="#fff"
             />
+            <path id={textPathId} d={textArc} fill="none" />
             <text
-              x={x}
-              y={y}
-              textAnchor="middle"
-              alignmentBaseline="middle"
               fontSize={fontSize}
               fill={selectedEmotion === stage ? "#fff" : "#000"}
               fillOpacity={textOpacity}
               style={{ pointerEvents: "none" }}
             >
-              {stage}
+              <textPath href={`#${textPathId}`} startOffset="50%" textAnchor="middle">
+                {stage}
+              </textPath>
             </text>
           </g>
         );
