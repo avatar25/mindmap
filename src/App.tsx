@@ -1,33 +1,13 @@
 import React, { useState, useEffect } from "react";
 import EmotionWheel from "./EmotionWheel";
 import DarkModeToggle from "./DarkModeToggle";
-
-type EmotionLog = {
-  emotion: string;
-  intensity: number;
-  timestamp: string;
-};
+import AnalyticsDashboard from "./components/AnalyticsDashboard";
+import DataManagement from "./components/DataManagement";
+import { EmotionLog, formatDateDetailed } from "./utils/dataUtils";
 
 const LOCAL_STORAGE_KEY = "emotionLog";
 
-function formatDate(iso: string): string {
-  const date = new Date(iso);
-  const today = new Date();
-  if (
-    date.getDate() === today.getDate() &&
-    date.getMonth() === today.getMonth() &&
-    date.getFullYear() === today.getFullYear()
-  ) {
-    return "Today";
-  }
-  return date
-    .toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    })
-    .replace(/\//g, "-");
-}
+
 
 const App: React.FC = () => {
   const [emotion, setEmotion] = useState("");
@@ -38,6 +18,8 @@ const App: React.FC = () => {
   const [error, setError] = useState(false);
   const [dark, setDark] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showDataManagement, setShowDataManagement] = useState(false);
 
   // Load logs from localStorage on mount
   useEffect(() => {
@@ -106,6 +88,20 @@ const App: React.FC = () => {
       e.preventDefault();
       handleSubmit(e as any);
     }
+  };
+
+  const handleImportData = (newLogs: EmotionLog[]) => {
+    setLogs(newLogs);
+  };
+
+  const toggleAnalytics = () => {
+    setShowAnalytics(!showAnalytics);
+    setShowDataManagement(false);
+  };
+
+  const toggleDataManagement = () => {
+    setShowDataManagement(!showDataManagement);
+    setShowAnalytics(false);
   };
 
   // Filter logs based on search query
@@ -214,12 +210,14 @@ const App: React.FC = () => {
               Log Emotion
             </button>
           </form>
-          <section style={{ width: "100%", maxWidth: 500 }}>
+          <section style={{ width: "100%", maxWidth: 800 }}>
             <div style={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              marginBottom: "1rem"
+              marginBottom: "1rem",
+              flexWrap: "wrap",
+              gap: "0.5rem"
             }}>
               <div>
                 <h2 style={{fontSize: "1.1rem", fontWeight: 500, margin: 0}}>Your Emotional Timeline</h2>
@@ -236,33 +234,77 @@ const App: React.FC = () => {
                   </div>
                 )}
               </div>
-              {logs.length > 0 && (
+              
+              {/* Navigation Buttons */}
+              <div style={{
+                display: "flex",
+                gap: "0.5rem",
+                flexWrap: "wrap"
+              }}>
                 <button
-                  onClick={handleClearAll}
+                  onClick={toggleAnalytics}
                   style={{
-                    background: "none",
-                    border: "1px solid #ff6b6b",
-                    color: "#ff6b6b",
+                    background: showAnalytics ? "var(--primary-color)" : "transparent",
+                    border: "1px solid var(--primary-color)",
+                    color: showAnalytics ? "#fff" : "var(--primary-color)",
                     padding: "0.5rem 1rem",
                     borderRadius: "6px",
                     fontSize: "0.85rem",
                     cursor: "pointer",
                     transition: "all 0.2s"
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#ff6b6b";
-                    e.currentTarget.style.color = "#fff";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = "#ff6b6b";
-                  }}
-                  title="Delete all emotion logs"
-                  aria-label="Clear all emotion logs"
+                  title="View analytics dashboard"
+                  aria-label="Toggle analytics dashboard"
                 >
-                  Clear All
+                  📊 Analytics
                 </button>
-              )}
+                
+                <button
+                  onClick={toggleDataManagement}
+                  style={{
+                    background: showDataManagement ? "var(--primary-color)" : "transparent",
+                    border: "1px solid var(--primary-color)",
+                    color: showDataManagement ? "#fff" : "var(--primary-color)",
+                    padding: "0.5rem 1rem",
+                    borderRadius: "6px",
+                    fontSize: "0.85rem",
+                    cursor: "pointer",
+                    transition: "all 0.2s"
+                  }}
+                  title="Manage data import/export"
+                  aria-label="Toggle data management"
+                >
+                  📁 Data
+                </button>
+                
+                {logs.length > 0 && (
+                  <button
+                    onClick={handleClearAll}
+                    style={{
+                      background: "none",
+                      border: "1px solid #ff6b6b",
+                      color: "#ff6b6b",
+                      padding: "0.5rem 1rem",
+                      borderRadius: "6px",
+                      fontSize: "0.85rem",
+                      cursor: "pointer",
+                      transition: "all 0.2s"
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#ff6b6b";
+                      e.currentTarget.style.color = "#fff";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                      e.currentTarget.style.color = "#ff6b6b";
+                    }}
+                    title="Delete all emotion logs"
+                    aria-label="Clear all emotion logs"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
             </div>
             
             {/* Search input */}
@@ -337,7 +379,7 @@ const App: React.FC = () => {
                             Intensity: {log.intensity}/10
                           </span>
                           <span style={{fontSize: "0.85rem", color: "#888", display: "block", marginTop: "0.25rem"}}>
-                            {formatDate(log.timestamp)}
+                            {formatDateDetailed(log.timestamp)}
                           </span>
                         </div>
                         <button
@@ -367,6 +409,16 @@ const App: React.FC = () => {
               </>
             )}
           </section>
+          
+          {/* Analytics Dashboard */}
+          <AnalyticsDashboard logs={logs} isVisible={showAnalytics} />
+          
+          {/* Data Management */}
+          <DataManagement 
+            logs={logs} 
+            onImport={handleImportData} 
+            isVisible={showDataManagement} 
+          />
         </div>
       </div>
     </>
