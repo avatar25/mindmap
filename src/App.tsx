@@ -32,17 +32,13 @@ const App: React.FC = () => {
   const [emotion, setEmotion] = useState("");
   const [intensity, setIntensity] = useState(5);
   const [logs, setLogs] = useState<EmotionLog[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Load logs from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (stored) {
-      try {
-        setLogs(JSON.parse(stored));
-      } catch {
-        console.error("Failed to parse emotion logs from localStorage.");
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-      }
+      setLogs(JSON.parse(stored));
     }
   }, []);
 
@@ -64,6 +60,29 @@ const App: React.FC = () => {
     setIntensity(5);
   };
 
+  const handleDelete = (timestamp: string) => {
+    setLogs(logs.filter(log => log.timestamp !== timestamp));
+  };
+
+  const handleClearAll = () => {
+    if (window.confirm("Are you sure you want to delete all emotion logs? This action cannot be undone.")) {
+      setLogs([]);
+      setSearchQuery("");
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && emotion.trim()) {
+      e.preventDefault();
+      handleSubmit(e as any);
+    }
+  };
+
+  // Filter logs based on search query
+  const filteredLogs = logs.filter(log =>
+    log.emotion.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <>
       <div
@@ -74,9 +93,7 @@ const App: React.FC = () => {
           marginBottom: "1.5rem",
         }}
       >
-        <h1 style={{ fontSize: "3rem", fontWeight: 700, letterSpacing: 2, color: "#4f8cff", margin: 0 }}>
-          MindMap
-        </h1>
+
       </div>
       <div
         style={{
@@ -105,8 +122,8 @@ const App: React.FC = () => {
             alignItems: "center",
           }}
         >
-          <h1 style={{ textAlign: "center", marginBottom: "1.5rem" }}>MindMap</h1>
-          <form onSubmit={handleSubmit} style={{ marginBottom: "2rem", width: "100%" }}>
+          <h1 style={{ textAlign: "center", marginBottom: "1.5rem", color: "#DB87D4", fontSize: "3rem", fontWeight: 700, letterSpacing: 4 }}>MindMap</h1>
+          <form onSubmit={handleSubmit} onKeyPress={handleKeyPress} style={{ marginBottom: "2rem", width: "100%" }}>
             
             <div
               style={{
@@ -171,36 +188,152 @@ const App: React.FC = () => {
             </button>
           </form>
           <section style={{ width: "100%", maxWidth: 500 }}>
-            <h2 style={{fontSize: "1.1rem", marginBottom: "1rem", fontWeight: 500}}>Your Emotional Timeline</h2>
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "1rem"
+            }}>
+              <div>
+                <h2 style={{fontSize: "1.1rem", fontWeight: 500, margin: 0}}>Your Emotional Timeline</h2>
+                {logs.length > 0 && (
+                  <div style={{
+                    fontSize: "0.85rem",
+                    color: "#666",
+                    marginTop: "0.25rem"
+                  }}>
+                    {searchQuery 
+                      ? `${filteredLogs.length} of ${logs.length} emotion${logs.length === 1 ? '' : 's'}`
+                      : `${logs.length} emotion${logs.length === 1 ? '' : 's'} logged`
+                    }
+                  </div>
+                )}
+              </div>
+              {logs.length > 0 && (
+                <button
+                  onClick={handleClearAll}
+                  style={{
+                    background: "none",
+                    border: "1px solid #ff6b6b",
+                    color: "#ff6b6b",
+                    padding: "0.5rem 1rem",
+                    borderRadius: "6px",
+                    fontSize: "0.85rem",
+                    cursor: "pointer",
+                    transition: "all 0.2s"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#ff6b6b";
+                    e.currentTarget.style.color = "#fff";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = "#ff6b6b";
+                  }}
+                  title="Delete all emotion logs"
+                >
+                  Clear All
+                </button>
+              )}
+            </div>
+            
+            {/* Search input */}
+            {logs.length > 0 && (
+              <div style={{ marginBottom: "1rem" }}>
+                <input
+                  type="text"
+                  placeholder="Search emotions..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    borderRadius: 8,
+                    border: "1px solid #e1e5e9",
+                    fontSize: "0.95rem",
+                    outline: "none",
+                    transition: "border-color 0.2s"
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = "#4f8cff"}
+                  onBlur={(e) => e.target.style.borderColor = "#e1e5e9"}
+                />
+              </div>
+            )}
+            
             {logs.length === 0 ? (
               <div style={{color: "#888", textAlign: "center"}}>No logs yet.</div>
             ) : (
-              <ul style={{listStyle: "none", padding: 0, margin: 0}}>
-                {logs.map((log, idx) => (
-                  <li
-                    key={log.timestamp + idx}
-                    style={{
-                      background: "#f6f8fa",
-                      borderRadius: 8,
-                      padding: "0.75rem 1rem",
-                      marginBottom: "0.75rem",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "0.25rem"
-                    }}
-                  >
-                    <span style={{fontSize: "1.05rem", fontWeight: 500, color: "#000"}}>
-                      {log.emotion}
-                    </span>
-                    <span style={{fontSize: "0.95rem", color: "#4f8cff"}}>
-                      Intensity: {log.intensity}/10
-                    </span>
-                    <span style={{fontSize: "0.85rem", color: "#888"}}>
-                      {formatDate(log.timestamp)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              <>
+                {/* Show search results count */}
+                {searchQuery && (
+                  <div style={{ 
+                    fontSize: "0.9rem", 
+                    color: "#666", 
+                    marginBottom: "0.75rem",
+                    textAlign: "center"
+                  }}>
+                    {filteredLogs.length === 0 
+                      ? "No emotions found matching your search"
+                      : `Found ${filteredLogs.length} emotion${filteredLogs.length === 1 ? '' : 's'}`
+                    }
+                  </div>
+                )}
+                
+                <ul style={{listStyle: "none", padding: 0, margin: 0}}>
+                  {filteredLogs.map((log, idx) => (
+                    <li
+                      key={log.timestamp + idx}
+                      style={{
+                        background: "#f6f8fa",
+                        borderRadius: 8,
+                        padding: "0.75rem 1rem",
+                        marginBottom: "0.75rem",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "0.25rem",
+                        position: "relative"
+                      }}
+                    >
+                      <div style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start"
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <span style={{fontSize: "1.05rem", fontWeight: 500, color: "#000"}}>
+                            {log.emotion}
+                          </span>
+                          <span style={{fontSize: "0.95rem", color: "#4f8cff", display: "block", marginTop: "0.25rem"}}>
+                            Intensity: {log.intensity}/10
+                          </span>
+                          <span style={{fontSize: "0.85rem", color: "#888", display: "block", marginTop: "0.25rem"}}>
+                            {formatDate(log.timestamp)}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleDelete(log.timestamp)}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: "#ff6b6b",
+                            cursor: "pointer",
+                            fontSize: "1.2rem",
+                            padding: "0.25rem",
+                            borderRadius: "4px",
+                            transition: "background-color 0.2s",
+                            marginLeft: "0.5rem"
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#ffe6e6"}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+                          title="Delete this emotion log"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
           </section>
         </div>
