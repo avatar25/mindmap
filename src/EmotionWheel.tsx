@@ -17,14 +17,14 @@ const sectors = [
 ];
 
 const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion, selectedEmotion }) => {
-  // Make the wheel responsive
-  const size = 600; // Increased size
-  const radius = 270; // Increased radius
-  const cx = size / 2;
-  const cy = size / 2;
-  const ringCount = 3;
-  const ringWidth = radius / ringCount;
-  const anglePerSector = (2 * Math.PI) / sectors.length;
+  const size = 600;
+  const centerX = 0;
+  const centerY = 0;
+  const innerRadius = 40;
+  const middleRadius = 100;
+  const outerRadius = 180;
+  const middleLayerMax = 180;
+  const outerLayerMax = 280;
 
   const polarToCartesian = (angle: number, r: number) => ({
     x: cx + r * Math.cos(angle),
