@@ -8,8 +8,6 @@ import { EmotionLog, formatDateDetailed } from "./utils/dataUtils";
 const LOCAL_STORAGE_KEY = "emotionLog";
 const MOOD_GOAL_KEY = "moodGoal";
 
-
-
 const App: React.FC = () => {
   const [emotion, setEmotion] = useState("");
   const [intensity, setIntensity] = useState(5);
@@ -41,10 +39,6 @@ const App: React.FC = () => {
       if (goal) {
         setMoodGoal(JSON.parse(goal));
       }
-      const goal = localStorage.getItem(MOOD_GOAL_KEY);
-      if (goal) {
-        setMoodGoal(JSON.parse(goal));
-      }
       setShowOnboarding(!localStorage.getItem("onboardingSeen"));
     } catch (err) {
       setError(true);
@@ -71,15 +65,6 @@ const App: React.FC = () => {
     }
   }, [moodGoal]);
 
-  // Save mood goal to localStorage whenever it changes
-  useEffect(() => {
-    if (moodGoal) {
-      localStorage.setItem(MOOD_GOAL_KEY, JSON.stringify(moodGoal));
-    } else {
-      localStorage.removeItem(MOOD_GOAL_KEY);
-    }
-  }, [moodGoal]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!emotion.trim()) return;
@@ -88,15 +73,11 @@ const App: React.FC = () => {
       intensity,
       context: context.trim() || undefined,
       journal: journal.trim() || undefined,
-      context: context.trim() || undefined,
-      journal: journal.trim() || undefined,
       timestamp: new Date().toISOString(),
     };
     setLogs([newLog, ...logs]);
     setEmotion("");
     setIntensity(5);
-    setContext("");
-    setJournal("");
     setContext("");
     setJournal("");
   };
@@ -132,14 +113,6 @@ const App: React.FC = () => {
     setGoalTarget(1);
   };
 
-  const handleGoalSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!goalEmotion.trim() || goalTarget <= 0) return;
-    setMoodGoal({ emotion: goalEmotion.trim(), target: goalTarget });
-    setGoalEmotion("");
-    setGoalTarget(1);
-  };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && emotion.trim()) {
       e.preventDefault();
@@ -165,12 +138,6 @@ const App: React.FC = () => {
   const filteredLogs = logs.filter(log =>
     log.emotion.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const goalProgress = moodGoal
-    ? logs.filter(
-        (l) => l.emotion.toLowerCase() === moodGoal.emotion.toLowerCase()
-      ).length
-    : 0;
 
   const goalProgress = moodGoal
     ? logs.filter(
@@ -292,39 +259,6 @@ const App: React.FC = () => {
               rows={3}
               aria-label="Mood journal"
             />
-            <input
-              type="text"
-              placeholder="Context or triggers (optional)"
-              value={context}
-              onChange={(e) => setContext(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "0.75rem",
-                borderRadius: 8,
-                border: "1px solid #e1e5e9",
-                marginBottom: "0.75rem",
-                fontSize: "0.95rem",
-                outline: "none"
-              }}
-              aria-label="Mood context"
-            />
-            <textarea
-              placeholder="Journal entry (optional)"
-              value={journal}
-              onChange={(e) => setJournal(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "0.75rem",
-                borderRadius: 8,
-                border: "1px solid #e1e5e9",
-                marginBottom: "0.75rem",
-                fontSize: "0.95rem",
-                outline: "none",
-                resize: "vertical"
-              }}
-              rows={3}
-              aria-label="Mood journal"
-            />
             <button
               type="submit"
               disabled={!emotion.trim()}
@@ -345,6 +279,48 @@ const App: React.FC = () => {
               Log Emotion
             </button>
           </form>
+          
+          {/* Mood Goal Form */}
+          <form onSubmit={handleGoalSubmit} style={{ width: "100%", maxWidth: 500, marginBottom: "1.5rem" }}>
+            <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
+              <input
+                type="text"
+                placeholder="Goal emotion"
+                value={goalEmotion}
+                onChange={(e) => setGoalEmotion(e.target.value)}
+                style={{ flex: 1, padding: "0.5rem", border: "1px solid #e1e5e9", borderRadius: 6 }}
+                aria-label="Goal emotion"
+              />
+              <input
+                type="number"
+                min={1}
+                value={goalTarget}
+                onChange={(e) => setGoalTarget(Number(e.target.value))}
+                style={{ width: 80, padding: "0.5rem", border: "1px solid #e1e5e9", borderRadius: 6 }}
+                aria-label="Goal target"
+              />
+              <button type="submit" style={{ padding: "0.5rem 1rem", borderRadius: 6, border: "none", background: "var(--primary-color)", color: "#fff", cursor: "pointer" }}>
+                Set Goal
+              </button>
+            </div>
+          </form>
+          {moodGoal && (
+            <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+              <div style={{ fontWeight: 500 }}>
+                Goal: Log "{moodGoal.emotion}" {moodGoal.target} times
+              </div>
+              <div style={{ fontSize: "0.9rem", color: "#666", marginTop: "0.25rem" }}>
+                Progress: {goalProgress}/{moodGoal.target}
+              </div>
+              <button
+                onClick={() => setMoodGoal(null)}
+                style={{ marginTop: "0.5rem", background: "none", border: "1px solid #ff6b6b", color: "#ff6b6b", padding: "0.25rem 0.75rem", borderRadius: 6, cursor: "pointer" }}
+              >
+                Clear Goal
+              </button>
+            </div>
+          )}
+          
           <section style={{ width: "100%", maxWidth: 800 }}>
             <div style={{
               display: "flex",
@@ -513,16 +489,6 @@ const App: React.FC = () => {
                           <span style={{fontSize: "0.95rem", color: "var(--primary-color)", display: "block", marginTop: "0.25rem"}}>
                             Intensity: {log.intensity}/10
                           </span>
-                          {log.context && (
-                            <span style={{fontSize: "0.9rem", color: "var(--text-color)", display: "block", marginTop: "0.25rem"}}>
-                              Context: {log.context}
-                            </span>
-                          )}
-                          {log.journal && (
-                            <span style={{fontSize: "0.9rem", color: "var(--text-color)", display: "block", marginTop: "0.25rem"}}>
-                              Journal: {log.journal}
-                            </span>
-                          )}
                           {log.context && (
                             <span style={{fontSize: "0.9rem", color: "var(--text-color)", display: "block", marginTop: "0.25rem"}}>
                               Context: {log.context}
