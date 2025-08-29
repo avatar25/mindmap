@@ -76,41 +76,6 @@ function getOutlineColor(hex: string): string {
 
 const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion }) => {
   const size = 600;
-  const middleRadius = 100;
-  const middleLayerMax = 180;
-  const outerLayerMax = 280;
-
-  const getEmotionAtPosition = (angle: number, layer: number) => {
-    // Normalize angle to 0-360 range before calculating the sector.
-    const normalized = (angle + 360 + 22.5) % 360;
-    const sectorIndex = Math.floor(normalized / 45);
-    return emotionLayers[layer].emotions[sectorIndex];
-  };
-
-  const handleClick = (event: React.MouseEvent<SVGElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left - size / 2;
-    const y = event.clientY - rect.top - size / 2;
-    
-    const distance = Math.sqrt(x * x + y * y);
-    const angle = (Math.atan2(y, x) * 180) / Math.PI;
-    
-    let layer = -1;
-    if (distance <= middleRadius) {
-      layer = 2; // Inner layer
-    } else if (distance <= middleLayerMax) {
-      layer = 1; // Middle layer
-    } else if (distance <= outerLayerMax) {
-      layer = 0; // Outer layer
-    } else {
-      return; // Click outside the lotus
-    }
-    
-    const emotion = getEmotionAtPosition(angle, layer);
-    if (emotion) {
-      setEmotion(emotion.label);
-    }
-  };
 
   return (
     <div style={{ textAlign: 'center', margin: '20px 0' }}>
@@ -119,7 +84,6 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion }) => {
         width={size} 
         height={size} 
         viewBox="-300 -300 600 600"
-        onClick={handleClick}
         style={{ cursor: 'pointer', maxWidth: '100%', height: 'auto' }}
       >
         {/* Drop shadow filter */}
@@ -141,6 +105,19 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion }) => {
                 stroke={getOutlineColor(color)}
                 strokeWidth={3}
                 transform={`rotate(${i*45})`}
+                role="button"
+                tabIndex={0}
+                aria-label={emotionLayers[0].emotions[i].label}
+                onClick={(e: React.MouseEvent<SVGPathElement>) => {
+                  e.stopPropagation();
+                  setEmotion(emotionLayers[0].emotions[i].label);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setEmotion(emotionLayers[0].emotions[i].label);
+                  }
+                }}
               />
             ))}
           </g>
@@ -155,6 +132,19 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion }) => {
                 stroke={getOutlineColor(color)}
                 strokeWidth={2.5}
                 transform={`rotate(${i*45})`}
+                role="button"
+                tabIndex={0}
+                aria-label={emotionLayers[1].emotions[i].label}
+                onClick={(e: React.MouseEvent<SVGPathElement>) => {
+                  e.stopPropagation();
+                  setEmotion(emotionLayers[1].emotions[i].label);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setEmotion(emotionLayers[1].emotions[i].label);
+                  }
+                }}
               />
             ))}
           </g>
@@ -169,6 +159,19 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion }) => {
                 stroke={getOutlineColor(color)}
                 strokeWidth={2}
                 transform={`rotate(${i*45})`}
+                role="button"
+                tabIndex={0}
+                aria-label={emotionLayers[2].emotions[i].label}
+                onClick={(e: React.MouseEvent<SVGPathElement>) => {
+                  e.stopPropagation();
+                  setEmotion(emotionLayers[2].emotions[i].label);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setEmotion(emotionLayers[2].emotions[i].label);
+                  }
+                }}
               />
             ))}
           </g>
