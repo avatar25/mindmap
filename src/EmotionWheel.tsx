@@ -104,7 +104,7 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion }) => {
                 opacity="0.7"
                 stroke={getOutlineColor(color)}
                 strokeWidth={3}
-                transform={`rotate(${i*45})`}
+                transform={`rotate(${i*45 + 90})`}
                 role="button"
                 tabIndex={0}
                 aria-label={emotionLayers[0].emotions[i].label}
@@ -131,7 +131,7 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion }) => {
                 opacity="0.7"
                 stroke={getOutlineColor(color)}
                 strokeWidth={2.5}
-                transform={`rotate(${i*45})`}
+                transform={`rotate(${i*45 + 90})`}
                 role="button"
                 tabIndex={0}
                 aria-label={emotionLayers[1].emotions[i].label}
@@ -158,7 +158,7 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion }) => {
                 opacity="0.8"
                 stroke={getOutlineColor(color)}
                 strokeWidth={2}
-                transform={`rotate(${i*45})`}
+                transform={`rotate(${i*45 + 90})`}
                 role="button"
                 tabIndex={0}
                 aria-label={emotionLayers[2].emotions[i].label}
