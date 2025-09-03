@@ -90,8 +90,12 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion }) => {
           @keyframes lotus-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
           .spin-slow { animation: lotus-spin 90s linear infinite; transform-origin: center; transform-box: fill-box; }
           .spin-slow:hover { animation-play-state: paused; }
+          /* Counter-rotate labels so they stay horizontal while orbiting */
+          .spin-counter { animation: lotus-spin 90s linear infinite reverse; transform-origin: center; transform-box: fill-box; }
+          .spin-slow:hover .spin-counter { animation-play-state: paused; }
           @media (prefers-reduced-motion: reduce) {
             .spin-slow { animation: none; }
+            .spin-counter { animation: none; }
           }
         `}</style>
         {/* Drop shadow filter */}
@@ -199,6 +203,7 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion }) => {
                 key={`outer-${emotion.label}`}
                 x={x}
                 y={y}
+                className="spin-counter"
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fontSize="18"
@@ -222,6 +227,7 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion }) => {
                 key={`middle-${emotion.label}`}
                 x={x}
                 y={y}
+                className="spin-counter"
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fontSize="15"
@@ -245,6 +251,7 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion }) => {
                 key={`inner-${emotion.label}`}
                 x={x}
                 y={y}
+                className="spin-counter"
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fontSize="12"
