@@ -1,107 +1,116 @@
 import React from "react";
 
 type EmotionWheelProps = {
+  selectedEmotion?: string;
   setEmotion: (value: string) => void;
 };
 
-// Map emotions to the 8 petals of the lotus
-const emotionLayers = [
-  // Outer layer - intense emotions
+type Emotion = {
+  label: string;
+  color: string;
+};
+
+type EmotionLayer = {
+  className: string;
+  d: string;
+  emotions: Emotion[];
+  labelRadius: number;
+  labelSize: number;
+  opacity: number;
+  strokeWidth: number;
+};
+
+const emotionLayers: EmotionLayer[] = [
   {
+    className: "outer",
+    d: "M0,0 C 40,-140, 100,-140, 0,-280 C -100,-140, -40,-140, 0,0",
+    labelRadius: 208,
+    labelSize: 17,
+    opacity: 0.72,
+    strokeWidth: 2,
     emotions: [
-      { label: "Rage", color: "#DD4124" },
-      { label: "Terror", color: "#6B5B95" },
-      { label: "Ecstasy", color: "#88B04B" },
-      { label: "Vigilance", color: "#FFA500" },
-      { label: "Admiration", color: "#009B77" },
-      { label: "Amazement", color: "#FF6F61" },
-      { label: "Grief", color: "#45B8AC" },
-      { label: "Loathing", color: "#EFC050" }
-    ]
+      { label: "Rage", color: "#D7564A" },
+      { label: "Terror", color: "#6D669C" },
+      { label: "Ecstasy", color: "#88A96B" },
+      { label: "Vigilance", color: "#DA8A35" },
+      { label: "Admiration", color: "#2F9B86" },
+      { label: "Amazement", color: "#D96A5C" },
+      { label: "Grief", color: "#5AA9A5" },
+      { label: "Loathing", color: "#D0A94F" },
+    ],
   },
-  // Middle layer - moderate emotions
   {
+    className: "middle",
+    d: "M0,0 C 30,-92, 74,-92, 0,-188 C -74,-92, -30,-92, 0,0",
+    labelRadius: 132,
+    labelSize: 14,
+    opacity: 0.78,
+    strokeWidth: 1.75,
     emotions: [
-      { label: "Anger", color: "#E74C3C" },
-      { label: "Fear", color: "#A569BD" },
-      { label: "Joy", color: "#58D68D" },
-      { label: "Anticipation", color: "#FF5733" },
-      { label: "Trust", color: "#1F618D" },
-      { label: "Surprise", color: "#FFC300" },
-      { label: "Sadness", color: "#16A085" },
-      { label: "Disgust", color: "#F7DC6F" }
-    ]
+      { label: "Anger", color: "#DB6A50" },
+      { label: "Fear", color: "#9A79B5" },
+      { label: "Joy", color: "#63B87D" },
+      { label: "Anticipation", color: "#E56A4F" },
+      { label: "Trust", color: "#34799A" },
+      { label: "Surprise", color: "#E3B44B" },
+      { label: "Sadness", color: "#3FA08C" },
+      { label: "Disgust", color: "#DCC766" },
+    ],
   },
-  // Inner layer - mild emotions
   {
+    className: "inner",
+    d: "M0,0 C 20,-54, 46,-54, 0,-110 C -46,-54, -20,-54, 0,0",
+    labelRadius: 68,
+    labelSize: 11,
+    opacity: 0.86,
+    strokeWidth: 1.5,
     emotions: [
-      { label: "Annoyance", color: "#C0392B" },
-      { label: "Apprehension", color: "#AF7AC5" },
-      { label: "Serenity", color: "#82E0AA" },
-      { label: "Interest", color: "#EC7063" },
-      { label: "Acceptance", color: "#2980B9" },
-      { label: "Distraction", color: "#F5B041" },
-      { label: "Pensiveness", color: "#117864" },
-      { label: "Boredom", color: "#F4D03F" }
-    ]
-  }
+      { label: "Annoyance", color: "#C96053" },
+      { label: "Apprehension", color: "#AF87C1" },
+      { label: "Serenity", color: "#82CFA0" },
+      { label: "Interest", color: "#E28A74" },
+      { label: "Acceptance", color: "#5494B6" },
+      { label: "Distraction", color: "#E6AE57" },
+      { label: "Pensiveness", color: "#559782" },
+      { label: "Boredom", color: "#D3C966" },
+    ],
+  },
 ];
 
-// Utility to get petal color for each layer and index
-const petalColors = [
-  ["#FF6F61", "#6B5B95", "#88B04B", "#FFA500", "#009B77", "#DD4124", "#45B8AC", "#EFC050"], // outer
-  ["#FFC300", "#A569BD", "#58D68D", "#FF5733", "#1F618D", "#E74C3C", "#16A085", "#F7DC6F"], // middle
-  ["#F5B041", "#AF7AC5", "#82E0AA", "#EC7063", "#2980B9", "#C0392B", "#117864", "#F4D03F"]  // inner
-];
-
-// Utility to get contrasting text shadow (white for dark petals, black for light petals)
-function getTextShadow(hex: string): string {
-  // Simple luminance check
-  const c = hex.replace('#', '');
-  const r = parseInt(c.substring(0,2),16);
-  const g = parseInt(c.substring(2,4),16);
-  const b = parseInt(c.substring(4,6),16);
-  const luminance = (0.299*r + 0.587*g + 0.114*b)/255;
-  return luminance > 0.5 ? '0 0 8px #222, 0 0 2px #222' : '0 0 8px #fff, 0 0 2px #fff';
-}
-
-// Utility to get a darker outline color
 function getOutlineColor(hex: string): string {
-  const c = hex.replace('#', '');
-  let r = Math.floor(parseInt(c.substring(0,2),16) * 0.7);
-  let g = Math.floor(parseInt(c.substring(2,4),16) * 0.7);
-  let b = Math.floor(parseInt(c.substring(4,6),16) * 0.7);
-  return `rgb(${r},${g},${b})`;
+  const c = hex.replace("#", "");
+  const r = Math.floor(parseInt(c.substring(0, 2), 16) * 0.68);
+  const g = Math.floor(parseInt(c.substring(2, 4), 16) * 0.68);
+  const b = Math.floor(parseInt(c.substring(4, 6), 16) * 0.68);
+  return `rgb(${r}, ${g}, ${b})`;
 }
 
-const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion }) => {
-  const size = 600;
-
-  // Rotation state in degrees
+const EmotionWheel: React.FC<EmotionWheelProps> = ({ selectedEmotion = "", setEmotion }) => {
   const [rotation, setRotation] = React.useState(0);
   const rafRef = React.useRef<number | null>(null);
-  const baseAngleRef = React.useRef(0); // accumulated angle at last (re)start
+  const baseAngleRef = React.useRef(0);
   const startTimeRef = React.useRef<number | null>(null);
   const pausedRef = React.useRef(false);
 
   React.useEffect(() => {
-    const prefersReduced = typeof window !== 'undefined' &&
-      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (prefersReduced) {
       setRotation(0);
       return;
     }
 
-    const durationMs = 90_000; // 90s per revolution
+    const durationMs = 110_000;
     const degPerMs = 360 / durationMs;
 
     const tick = (now: number) => {
       if (startTimeRef.current === null) startTimeRef.current = now;
       if (!pausedRef.current) {
         const elapsed = now - startTimeRef.current;
-        const angle = (baseAngleRef.current + elapsed * degPerMs) % 360;
-        setRotation(angle);
+        setRotation((baseAngleRef.current + elapsed * degPerMs) % 360);
       }
       rafRef.current = requestAnimationFrame(tick);
     };
@@ -115,199 +124,92 @@ const EmotionWheel: React.FC<EmotionWheelProps> = ({ setEmotion }) => {
 
   const handleMouseEnter = () => {
     pausedRef.current = true;
-    // Capture angle at pause
     baseAngleRef.current = rotation;
     startTimeRef.current = performance.now();
   };
 
   const handleMouseLeave = () => {
-    // Resume from captured base angle
     startTimeRef.current = performance.now();
     pausedRef.current = false;
   };
 
+  const handleLabelKeyDown = (event: React.KeyboardEvent<SVGTextElement>, label: string) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      setEmotion(label);
+    }
+  };
+
   return (
-    <div style={{ textAlign: 'center', margin: '20px 0' }}>
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        width={size} 
-        height={size} 
-        viewBox="-300 -300 600 600"
-        style={{ cursor: 'pointer', maxWidth: '100%', height: 'auto' }}
+    <div className="emotion-wheel-shell">
+      <svg
+        className="emotion-wheel"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="-310 -310 620 620"
+        aria-label="Emotion wheel"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        {/* Drop shadow filter */}
         <defs>
           <filter id="lotus-shadow" x="-50%" y="-50%" width="200%" height="200%">
-            <feDropShadow dx="0" dy="4" stdDeviation="8" floodColor="#000" floodOpacity="0.18" />
+            <feDropShadow dx="0" dy="8" stdDeviation="10" floodColor="#203C35" floodOpacity="0.16" />
           </filter>
         </defs>
-        {/* Rotating group: petals + labels together */}
-        <g transform={`rotate(${rotation})`}>
-          {/* Rotating group: petals + labels together */}
-        <g className="spin-slow">
-          {/* Group to hold all petals with drop shadow */}
-            <g filter="url(#lotus-shadow)">
-              {/* Outer layer */}
-              <g id="outer-layer">
-                {petalColors[0].map((color, i) => (
-                  <path
-                    key={color}
-                    d="M0,0 C 40,-140, 100,-140, 0,-280 C -100,-140, -40,-140, 0,0"
-                    fill={color}
-                    opacity="0.7"
-                    stroke={getOutlineColor(color)}
-                    strokeWidth={3}
-                    transform={`rotate(${i*45 + 90})`}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={emotionLayers[0].emotions[i].label}
-                    onClick={(e: React.MouseEvent<SVGPathElement>) => {
-                      e.stopPropagation();
-                      setEmotion(emotionLayers[0].emotions[i].label);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setEmotion(emotionLayers[0].emotions[i].label);
-                      }
-                    }}
-                  />
-                ))}
+
+        <g className="emotion-wheel-rotor" transform={`rotate(${rotation})`}>
+          <g filter="url(#lotus-shadow)">
+            {emotionLayers.map((layer) => (
+              <g key={layer.className} className={`emotion-layer ${layer.className}`}>
+                {layer.emotions.map((emotion, index) => {
+                  const selected = emotion.label.toLowerCase() === selectedEmotion.toLowerCase();
+                  return (
+                    <path
+                      key={emotion.label}
+                      className={`emotion-petal ${selected ? "is-selected" : ""}`}
+                      d={layer.d}
+                      fill={emotion.color}
+                      opacity={selected ? 1 : layer.opacity}
+                      stroke={selected ? "var(--wheel-selected)" : getOutlineColor(emotion.color)}
+                      strokeWidth={selected ? layer.strokeWidth + 2 : layer.strokeWidth}
+                      transform={`rotate(${index * 45 + 90})`}
+                      onClick={() => setEmotion(emotion.label)}
+                    >
+                      <title>{emotion.label}</title>
+                    </path>
+                  );
+                })}
               </g>
-              {/* Middle layer */}
-              <g id="middle-layer">
-                {petalColors[1].map((color, i) => (
-                  <path
-                    key={color}
-                    d="M0,0 C 30,-90, 70,-90, 0,-180 C -70,-90, -30,-90, 0,0"
-                    fill={color}
-                    opacity="0.7"
-                    stroke={getOutlineColor(color)}
-                    strokeWidth={2.5}
-                    transform={`rotate(${i*45 + 90})`}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={emotionLayers[1].emotions[i].label}
-                    onClick={(e: React.MouseEvent<SVGPathElement>) => {
-                      e.stopPropagation();
-                      setEmotion(emotionLayers[1].emotions[i].label);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setEmotion(emotionLayers[1].emotions[i].label);
-                      }
-                    }}
-                  />
-                ))}
-              </g>
-              {/* Inner layer */}
-              <g id="inner-layer">
-                {petalColors[2].map((color, i) => (
-                  <path
-                    key={color}
-                    d="M0,0 C 20,-50, 40,-50, 0,-100 C -40,-50, -20,-50, 0,0"
-                    fill={color}
-                    opacity="0.8"
-                    stroke={getOutlineColor(color)}
-                    strokeWidth={2}
-                    transform={`rotate(${i*45 + 90})`}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={emotionLayers[2].emotions[i].label}
-                    onClick={(e: React.MouseEvent<SVGPathElement>) => {
-                      e.stopPropagation();
-                      setEmotion(emotionLayers[2].emotions[i].label);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setEmotion(emotionLayers[2].emotions[i].label);
-                      }
-                    }}
-                  />
-                ))}
-              </g>
-            </g>
-            {/* Emotion labels */}
-            {/* Outer layer labels */}
-            {emotionLayers[0].emotions.map((emotion, index) => {
-              const color = petalColors[0][index];
-              const angle = (index * 45) * (Math.PI / 180);
-              const r = 200;
-              const x = Math.cos(angle) * r;
-              const y = Math.sin(angle) * r;
+            ))}
+          </g>
+
+          {emotionLayers.map((layer) =>
+            layer.emotions.map((emotion, index) => {
+              const angle = index * 45 * (Math.PI / 180);
+              const x = Math.cos(angle) * layer.labelRadius;
+              const y = Math.sin(angle) * layer.labelRadius;
+              const selected = emotion.label.toLowerCase() === selectedEmotion.toLowerCase();
+
               return (
                 <text
-                  key={`outer-${emotion.label}`}
+                  key={`${layer.className}-${emotion.label}`}
                   x={x}
                   y={y}
-                transform={`rotate(${-rotation} ${x} ${y})`}
-                  className="spin-counter"
-                textAnchor="middle"
+                  className={`emotion-label ${selected ? "is-selected" : ""}`}
+                  transform={`rotate(${-rotation} ${x} ${y})`}
+                  textAnchor="middle"
                   dominantBaseline="middle"
-                  fontSize="18"
-                  fontWeight="bold"
-                  fill={color}
-                  style={{ pointerEvents: "none", textShadow: getTextShadow(color) }}
+                  fontSize={layer.labelSize}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={emotion.label}
+                  onClick={() => setEmotion(emotion.label)}
+                  onKeyDown={(event) => handleLabelKeyDown(event, emotion.label)}
                 >
                   {emotion.label}
                 </text>
               );
-            })}
-            {/* Middle layer labels */}
-            {emotionLayers[1].emotions.map((emotion, index) => {
-              const color = petalColors[1][index];
-              const angle = (index * 45) * (Math.PI / 180);
-              const r = 120;
-              const x = Math.cos(angle) * r;
-              const y = Math.sin(angle) * r;
-              return (
-                <text
-                  key={`middle-${emotion.label}`}
-                  x={x}
-                  y={y}
-                transform={`rotate(${-rotation} ${x} ${y})`}
-                  className="spin-counter"
-                textAnchor="middle"
-                  dominantBaseline="middle"
-                  fontSize="15"
-                  fontWeight="bold"
-                  fill={color}
-                  style={{ pointerEvents: "none", textShadow: getTextShadow(color) }}
-                >
-                  {emotion.label}
-                </text>
-              );
-            })}
-            {/* Inner layer labels */}
-            {emotionLayers[2].emotions.map((emotion, index) => {
-              const color = petalColors[2][index];
-              const angle = (index * 45) * (Math.PI / 180);
-              const r = 60;
-              const x = Math.cos(angle) * r;
-              const y = Math.sin(angle) * r;
-              return (
-                <text
-                  key={`inner-${emotion.label}`}
-                  x={x}
-                  y={y}
-                transform={`rotate(${-rotation} ${x} ${y})`}
-                  className="spin-counter"
-                textAnchor="middle"
-                  dominantBaseline="middle"
-                  fontSize="12"
-                  fontWeight="bold"
-                  fill={color}
-                  style={{ pointerEvents: "none", textShadow: getTextShadow(color) }}
-                >
-                  {emotion.label}
-                </text>
-              );
-            })}
-        </g>
+            })
+          )}
         </g>
       </svg>
     </div>

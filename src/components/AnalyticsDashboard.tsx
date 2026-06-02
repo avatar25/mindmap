@@ -1,248 +1,161 @@
-import React from 'react';
+import React from "react";
 import {
-  LineChart,
-  Line,
-  BarChart,
   Bar,
-  PieChart,
-  Pie,
+  BarChart,
+  CartesianGrid,
   Cell,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer
-} from 'recharts';
-import { EmotionLog, getWeeklySummary, getMonthlySummary, getDataForPeriod } from '../utils/dataUtils';
+} from "recharts";
+import { EmotionLog, getDataForPeriod, getMonthlySummary, getWeeklySummary } from "../utils/dataUtils";
 
 interface AnalyticsDashboardProps {
   logs: EmotionLog[];
   isVisible: boolean;
 }
 
-const COLORS = [
-  '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#ff0000',
-  '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'
-];
+const COLORS = ["#2f8f83", "#ce5a45", "#6478aa", "#d0a94f", "#4d97b2", "#9a79b5"];
 
 const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ logs, isVisible }) => {
   if (!isVisible) return null;
 
   const weeklyData = getDataForPeriod(logs, 7);
   const monthlyData = getDataForPeriod(logs, 30);
-  
+
   const weeklySummary = getWeeklySummary(weeklyData);
   const monthlySummary = getMonthlySummary(monthlyData);
 
-  // Prepare data for charts
   const emotionFrequencyData = Object.entries(weeklySummary.emotionCounts)
     .map(([emotion, count]) => ({ emotion, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 10);
 
-  const intensityTrendData = weeklyData
+  const intensityTrendData = [...weeklyData]
     .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-    .map(log => ({
+    .map((log) => ({
       date: new Date(log.timestamp).toLocaleDateString(),
       intensity: log.intensity,
-      emotion: log.emotion
+      emotion: log.emotion,
     }));
 
-  const weeklyBreakdownData = monthlySummary.weeklyBreakdown.map(week => ({
+  const weeklyBreakdownData = monthlySummary.weeklyBreakdown.map((week) => ({
     week: new Date(week.week).toLocaleDateString(),
     logs: week.count,
-    avgIntensity: week.avgIntensity
+    avgIntensity: week.avgIntensity,
   }));
 
   return (
-    <div style={{
-      padding: '1rem',
-      background: 'var(--card-bg)',
-      borderRadius: '12px',
-      marginTop: '1rem',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-    }}>
-      <h2 style={{
-        textAlign: 'center',
-        marginBottom: '1.5rem',
-        color: 'var(--text-color)',
-        fontSize: '1.5rem'
-      }}>
-        📊 Analytics Dashboard
-      </h2>
-
-      {/* Summary Cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-        gap: '1rem',
-        marginBottom: '2rem'
-      }}>
-        <div style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          padding: '1rem',
-          borderRadius: '8px',
-          color: 'white',
-          textAlign: 'center'
-        }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}>This Week</h3>
-          <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{weeklySummary.totalLogs}</div>
-          <div style={{ fontSize: '0.8rem' }}>emotions logged</div>
-        </div>
-
-        <div style={{
-          background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-          padding: '1rem',
-          borderRadius: '8px',
-          color: 'white',
-          textAlign: 'center'
-        }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}>Avg Intensity</h3>
-          <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{weeklySummary.averageIntensity}</div>
-          <div style={{ fontSize: '0.8rem' }}>out of 10</div>
-        </div>
-
-        <div style={{
-          background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-          padding: '1rem',
-          borderRadius: '8px',
-          color: 'white',
-          textAlign: 'center'
-        }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}>Top Emotion</h3>
-          <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{weeklySummary.mostFrequentEmotion}</div>
-          <div style={{ fontSize: '0.8rem' }}>most frequent</div>
-        </div>
-
-        <div style={{
-          background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-          padding: '1rem',
-          borderRadius: '8px',
-          color: 'white',
-          textAlign: 'center'
-        }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem' }}>This Month</h3>
-          <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>{monthlySummary.totalLogs}</div>
-          <div style={{ fontSize: '0.8rem' }}>total logs</div>
-        </div>
+    <section className="panel analytics-panel" aria-label="Analytics dashboard">
+      <div className="section-heading">
+        <p className="eyebrow">Analytics</p>
+        <h2>Recent patterns</h2>
       </div>
 
-      {/* Charts */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-        gap: '2rem',
-        marginBottom: '2rem'
-      }}>
-        {/* Emotion Frequency Chart */}
-        {emotionFrequencyData.length > 0 && (
-          <div style={{
-            background: 'var(--bg-color)',
-            padding: '1rem',
-            borderRadius: '8px',
-            border: '1px solid var(--border-color)'
-          }}>
-            <h3 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-color)' }}>
-              Top Emotions This Week
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={emotionFrequencyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="emotion" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-
-        {/* Intensity Trend Chart */}
-        {intensityTrendData.length > 0 && (
-          <div style={{
-            background: 'var(--bg-color)',
-            padding: '1rem',
-            borderRadius: '8px',
-            border: '1px solid var(--border-color)'
-          }}>
-            <h3 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-color)' }}>
-              Intensity Trend
-            </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={intensityTrendData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis domain={[0, 10]} />
-                <Tooltip />
-                <Line type="monotone" dataKey="intensity" stroke="#82ca9d" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        )}
+      <div className="metric-grid">
+        <article className="metric-card">
+          <span>This week</span>
+          <strong>{weeklySummary.totalLogs}</strong>
+          <small>emotions logged</small>
+        </article>
+        <article className="metric-card">
+          <span>Avg intensity</span>
+          <strong>{weeklySummary.averageIntensity}</strong>
+          <small>out of 10</small>
+        </article>
+        <article className="metric-card">
+          <span>Top emotion</span>
+          <strong>{weeklySummary.mostFrequentEmotion}</strong>
+          <small>most frequent</small>
+        </article>
+        <article className="metric-card">
+          <span>This month</span>
+          <strong>{monthlySummary.totalLogs}</strong>
+          <small>total logs</small>
+        </article>
       </div>
 
-      {/* Weekly Breakdown */}
-      {weeklyBreakdownData.length > 0 && (
-        <div style={{
-          background: 'var(--bg-color)',
-          padding: '1rem',
-          borderRadius: '8px',
-          border: '1px solid var(--border-color)',
-          marginBottom: '2rem'
-        }}>
-          <h3 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-color)' }}>
-            Weekly Activity Breakdown
-          </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={weeklyBreakdownData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="week" />
-              <YAxis yAxisId="left" />
-              <YAxis yAxisId="right" orientation="right" />
-              <Tooltip />
-              <Legend />
-              <Bar yAxisId="left" dataKey="logs" fill="#8884d8" name="Logs" />
-              <Bar yAxisId="right" dataKey="avgIntensity" fill="#82ca9d" name="Avg Intensity" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
+      {emotionFrequencyData.length === 0 ? (
+        <div className="empty-state">No analytics yet.</div>
+      ) : (
+        <>
+          <div className="chart-grid">
+            <article className="chart-panel">
+              <h3>Top emotions this week</h3>
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={emotionFrequencyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="emotion" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#2f8f83" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </article>
 
-      {/* Emotion Distribution Pie Chart */}
-      {emotionFrequencyData.length > 0 && (
-        <div style={{
-          background: 'var(--bg-color)',
-          padding: '1rem',
-          borderRadius: '8px',
-          border: '1px solid var(--border-color)'
-        }}>
-          <h3 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-color)' }}>
-            Emotion Distribution
-          </h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={emotionFrequencyData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ emotion, percent }) => `${emotion} ${((percent || 0) * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="count"
-              >
-                {emotionFrequencyData.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+            <article className="chart-panel">
+              <h3>Intensity trend</h3>
+              <ResponsiveContainer width="100%" height={260}>
+                <LineChart data={intensityTrendData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis domain={[0, 10]} />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="intensity" stroke="#ce5a45" strokeWidth={3} dot={{ r: 4 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </article>
+          </div>
+
+          {weeklyBreakdownData.length > 0 && (
+            <article className="chart-panel">
+              <h3>Activity breakdown</h3>
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={weeklyBreakdownData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="week" />
+                  <YAxis yAxisId="left" />
+                  <YAxis yAxisId="right" orientation="right" />
+                  <Tooltip />
+                  <Legend />
+                  <Bar yAxisId="left" dataKey="logs" fill="#6478aa" name="Logs" radius={[6, 6, 0, 0]} />
+                  <Bar yAxisId="right" dataKey="avgIntensity" fill="#d0a94f" name="Avg intensity" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </article>
+          )}
+
+          <article className="chart-panel">
+            <h3>Emotion distribution</h3>
+            <ResponsiveContainer width="100%" height={280}>
+              <PieChart>
+                <Pie
+                  data={emotionFrequencyData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ emotion, percent }) => `${emotion} ${((percent || 0) * 100).toFixed(0)}%`}
+                  outerRadius={86}
+                  dataKey="count"
+                >
+                  {emotionFrequencyData.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </article>
+        </>
       )}
-    </div>
+    </section>
   );
 };
 
-export default AnalyticsDashboard; 
+export default AnalyticsDashboard;
