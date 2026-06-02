@@ -234,7 +234,6 @@ textarea:focus-visible,
 }
 
 .selected-bar,
-.goal-progress,
 .danger-zone {
   display: flex;
   align-items: center;
@@ -247,7 +246,6 @@ textarea:focus-visible,
 }
 
 .selected-bar span,
-.goal-progress span,
 .metric-card span,
 .field-label {
   color: var(--muted-color);
@@ -257,8 +255,7 @@ textarea:focus-visible,
   text-transform: uppercase;
 }
 
-.selected-bar strong,
-.goal-progress strong {
+.selected-bar strong {
   color: var(--text-color);
   font-size: 1.02rem;
 }
@@ -408,13 +405,6 @@ textarea:focus {
 .ghost-danger-button:hover,
 .delete-log-button:hover {
   background: var(--accent-muted);
-}
-
-.goal-form {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 100px auto;
-  gap: 10px;
-  align-items: end;
 }
 
 .timeline-panel,
@@ -722,7 +712,6 @@ textarea:focus {
     justify-content: flex-start;
   }
 
-  .goal-form,
   .metric-grid,
   .compact-metrics {
     grid-template-columns: 1fr;

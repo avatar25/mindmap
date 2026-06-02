@@ -6,9 +6,6 @@ import DataManagement from "./components/DataManagement";
 import { EmotionLog, formatDateDetailed } from "./utils/dataUtils";
 
 const LOCAL_STORAGE_KEY = "emotionLog";
-const MOOD_GOAL_KEY = "moodGoal";
-
-type MoodGoal = { emotion: string; target: number };
 
 const App: React.FC = () => {
   const [emotion, setEmotion] = useState("");
@@ -23,9 +20,6 @@ const App: React.FC = () => {
   const [showDataManagement, setShowDataManagement] = useState(false);
   const [context, setContext] = useState("");
   const [journal, setJournal] = useState("");
-  const [moodGoal, setMoodGoal] = useState<MoodGoal | null>(null);
-  const [goalEmotion, setGoalEmotion] = useState("");
-  const [goalTarget, setGoalTarget] = useState(1);
 
   useEffect(() => {
     try {
@@ -36,11 +30,6 @@ const App: React.FC = () => {
 
       const theme = localStorage.getItem("darkMode");
       setDark(theme === "true");
-
-      const goal = localStorage.getItem(MOOD_GOAL_KEY);
-      if (goal) {
-        setMoodGoal(JSON.parse(goal));
-      }
 
       setShowOnboarding(!localStorage.getItem("onboardingSeen"));
     } catch {
@@ -57,14 +46,6 @@ const App: React.FC = () => {
       setError(true);
     }
   }, [logs]);
-
-  useEffect(() => {
-    if (moodGoal) {
-      localStorage.setItem(MOOD_GOAL_KEY, JSON.stringify(moodGoal));
-    } else {
-      localStorage.removeItem(MOOD_GOAL_KEY);
-    }
-  }, [moodGoal]);
 
   useEffect(() => {
     document.body.classList.toggle("dark", dark);
@@ -111,14 +92,6 @@ const App: React.FC = () => {
     }
   };
 
-  const handleGoalSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!goalEmotion.trim() || goalTarget <= 0) return;
-    setMoodGoal({ emotion: goalEmotion.trim(), target: goalTarget });
-    setGoalEmotion("");
-    setGoalTarget(1);
-  };
-
   const handleImportData = (newLogs: EmotionLog[]) => {
     setLogs(newLogs);
   };
@@ -136,10 +109,6 @@ const App: React.FC = () => {
   const filteredLogs = logs.filter((log) =>
     log.emotion.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const goalProgress = moodGoal
-    ? logs.filter((log) => log.emotion.toLowerCase() === moodGoal.emotion.toLowerCase()).length
-    : 0;
 
   if (loading) {
     return <div className="app-state">Loading...</div>;
@@ -233,46 +202,6 @@ const App: React.FC = () => {
               Log emotion
             </button>
           </form>
-
-          <form className="goal-form" onSubmit={handleGoalSubmit}>
-            <label className="field-label goal-emotion">
-              Goal
-              <input
-                type="text"
-                placeholder="Emotion"
-                value={goalEmotion}
-                onChange={(e) => setGoalEmotion(e.target.value)}
-                aria-label="Goal emotion"
-              />
-            </label>
-            <label className="field-label goal-target">
-              Count
-              <input
-                type="number"
-                min={1}
-                value={goalTarget}
-                onChange={(e) => setGoalTarget(Number(e.target.value))}
-                aria-label="Goal target"
-              />
-            </label>
-            <button className="secondary-button" type="submit">
-              Set goal
-            </button>
-          </form>
-
-          {moodGoal && (
-            <div className="goal-progress">
-              <div>
-                <span>Goal</span>
-                <strong>
-                  {moodGoal.emotion} {goalProgress}/{moodGoal.target}
-                </strong>
-              </div>
-              <button className="ghost-danger-button" onClick={() => setMoodGoal(null)}>
-                Clear
-              </button>
-            </div>
-          )}
         </section>
       </section>
 
